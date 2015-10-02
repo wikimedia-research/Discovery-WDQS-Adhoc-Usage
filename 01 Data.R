@@ -2,6 +2,8 @@ library(magrittr)
 library(readr)
 library(urltools)
 library(jsonlite)
+library(rgeolocate)
+library(uaparser)
 
 # query_hive; provided with a hive query it writes it out to file and then calls Hive over said file, reading the results
 # and cleaning up after isself nicely when done.
@@ -30,43 +32,50 @@ date_clause <- function(date){
   return(paste("WHERE year = ", lubridate::year(date),
                "AND month = ", lubridate::month(date),
                "AND day = ", lubridate::day(date)))
-  
 }
 
 get_wdqs_queries <- function(date = NULL) {
-  # Date handling
+  ## Date handling
   if (is.null(date)) {
     date <- Sys.Date() - 1
   }
-  # Date subquery
+  ## Date subquery
   subquery <- date_clause(date)
-  # Build the hive query
+  ## Build the hive query
   wdqs_queries_query <- paste("USE wmf;
-                                SELECT ts AS timestamp, CONCAT('query.wikidata.org/', uri_query) AS uri, user_agent, client_ip, geocoded_data, referer
+                                SELECT ts AS timestamp, CONCAT('query.wikidata.org/', uri_query) AS uri, user_agent, client_ip, referer
                                 FROM webrequest",
                                 subquery,
                                 "AND webrequest_source = 'misc'
                                 AND uri_host = 'query.wikidata.org'
                                 AND uri_path = '/bigdata/namespace/wdq/sparql'
                                 AND INSTR(uri_query, '?query=') > 0;")
-  # Execute it
+  ## Execute it
   wdqs_queries <- query_hive(wdqs_queries_query)
   ## Cleanup
-  # Decode queries
+  ## Decode queries
   wdqs_queries$query <- url_decode(url_parameters(wdqs_queries$uri, "query")$query)
   wdqs_queries$uri <- NULL
-  # Get rid of empty rows
+  ## Get rid of empty rows
   wdqs_queries <- wdqs_queries[wdqs_queries$query != "", ]
-  # Parse JSON geocoded data
-  geocoded_data <- wdqs_queries$geocoded_data %>% sapply(fromJSON) %>% unname %>% t %>% as.data.frame
-  names(geocoded_data) <- c("city", "country_code", "longitude", "postal_code", "timezone", "subdivision", "continent", "latitude", "country")
-  wdqs_queries$geocoded_data <- NULL
-  wdqs_queries %<>% cbind(., geocoded_data)
-  # Save results
+  
+  wdqs_queries$countries <- maxmind(ips = wdqs_queries$client_ip,
+                                    file = "/usr/local/share/GeoIP/GeoIP2-Country.mmdb", "country_name")
+  
+  wdqs_queries_ua <- parse_agents(wdqs_queries$user_agent)
+  wdqs_queries <- cbind(wdqs_queries, wdqs_queries_ua)
+  
+  wdqs_queries$date <- date
+  
+  ## Parse JSON geocoded data
+  # geocoded_data <- wdqs_queries$geocoded_data %>% sapply(fromJSON) %>% unname %>% t %>% as.data.frame
+  # names(geocoded_data) <- c("city", "country_code", "longitude", "postal_code", "timezone", "subdivision", "continent", "latitude", "country")
+  # wdqs_queries$geocoded_data <- NULL
+  # wdqs_queries %<>% cbind(., geocoded_data)
+  
+  ## Save results
   save(list = "wdqs_queries", file = paste0("wdqs-queries_", date, ".RData"))
 }
 
 # get_wdqs_queries() # test run
-for ( i in 1:30 ) {
-  try(get_wdqs_queries(Sys.Date() - i))
-}
+lapply(seq(as.Date("2015-08-23"), Sys.Date()-2, "day"), get_wdqs_queries)
