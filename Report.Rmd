@@ -17,6 +17,8 @@ library(ggplot2)
 library(magrittr)
 library(knitr)
 library(scales)
+library(mclust)
+library(gridExtra)
 import::from(dplyr, group_by, select, summarize,
              right_join, left_join, ungroup, mutate,
              keep_where = filter)
@@ -30,6 +32,10 @@ top_n <- function(x, n = 10) {
   head(names(y), n)
 }
 "%notin%" <- function(x, y) !(x %in% y)
+smart_trim <- function(x, width) {
+  trimmed <- paste0(strtrim(x, width), '...')
+  ifelse(sapply(x, nchar) > width, trimmed, x)
+}
 ```
 
 ## Introduction
@@ -159,10 +165,190 @@ wdqs_queries %>%
 
 Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users.
 
-## Example user-written queries
+### Who are our most active users?
+
+**Note**: "user_id" is an anonymous identification marker created post-hoc from IP address and user agent. It is used for linking queries.
+
+#### Top 20 users by total queries
+
+```{r most_active_overall, as.is = TRUE}
+most_active_overall <- wdqs_queries %>%
+  group_by(user_id) %>%
+  summarize(`total queries` = n()) %>%
+  dplyr::top_n(20, `total queries`) %>%
+  dplyr::arrange(desc(`total queries`)) %>%
+  left_join(users, by = "user_id") %>%
+  select(-c(browser, device)) %>%
+  dplyr::rename(country = countries)
+knitr::kable(most_active_overall)
+```
+
+#### Top 20 users by daily service usage
+
+```{r most_active_daily, as.is = TRUE}
+most_active_daily <- wdqs_queries %>%
+  group_by(user_id, date) %>%
+  summarize(`queries per day` = n()) %>%
+  group_by(user_id) %>%
+  summarize(`median queries per day` = median(`queries per day`)) %>%
+  dplyr::top_n(20, `median queries per day`) %>%
+  dplyr::arrange(desc(`median queries per day`)) %>%
+  left_join(users, by = "user_id") %>%
+  select(-c(browser, device)) %>%
+  dplyr::rename(country = countries)
+knitr::kable(most_active_daily)
+```
+
+#### Users who made it to both lists
+
+```{r most_active_both, as.is = TRUE}
+dplyr::inner_join(select(most_active_overall, c(user_id, `total queries`)),
+                  select(most_active_daily, c(user_id, `median queries per day`)),
+                  by = "user_id") %>%
+  left_join(users) %>%
+  dplyr::arrange(desc(`median queries per day`)) %>%
+  select(-c(browser, device)) %>%
+  dplyr::rename(country = countries) %>%
+  knitr::kable()
+```
+
+```{r most_active_cleanup}
+rm(most_active_overall, most_active_daily)
+```
+
+### Referers
+
+```{r referers, as.is = TRUE}
+wdqs_queries %>%
+  mutate(referer = smart_trim(referer, 35)) %>%
+  group_by(referer, user_id) %>%
+  summarize(`queries by user` = n()) %>%
+  group_by(referer) %>%
+  summarize(users = n()) %>%
+  dplyr::top_n(10, users) %>%
+  dplyr::arrange(desc(users)) %>%
+  knitr::kable()
+```
+
+## Queries
+
+### Query lengths
+
+```{r nchar_hist, width = 10, height = 5}
+wdqs_queries %<>% mutate(length = nchar(query))
+ggplot(data = wdqs_queries, aes(x = length)) +
+  geom_histogram(binwidth = 100, alpha = 0.8) +
+  xlab("Number of characters in query") +
+  ggtitle("Distribution of query lengths:") +
+  wmf::theme_fivethirtynine()
+```
+
+We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
+
+We performed model-based clustering on the log10-transformed character counts. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
+
+```{r nchar_clust, cache = TRUE}
+# Use model-based clustering on the log10 transformed character counts:
+set.seed(0)
+wdqs_queries$log10length <- log10(wdqs_queries$length)
+clust <- Mclust(wdqs_queries$log10length, 4)
+wdqs_queries$cluster <- factor(LETTERS[clust$classification])
+
+# For calculating f(x):
+x = seq(min(wdqs_queries$log10length),
+        max(wdqs_queries$log10length),
+        length.out = 1000)
+
+# Calculate the f(x) using the mean and sd of that cluster:
+densities <- sapply(1:length(clust$parameters$pro),
+                    function(i) {
+                      dnorm(x,
+                            mean = clust$parameters$mean[i],
+                            sd = sqrt(clust$parameters$variance$sigmasq[i]))
+                    }) %>%
+  as.data.frame() %>%
+  { colnames(.) <- LETTERS[1:ncol(.)]; . } %>%
+  cbind(n = x, .) %>%
+  # Convert wide to long:
+  tidyr::gather("cluster", "density", -1) %>%
+  # Normalize:
+  group_by(cluster) %>%
+  mutate(density = density/max(density)) %>%
+  ungroup
+
+# Adjust densities for visualization:
+for (i in 1:length(clust$parameters$pro) ) {
+  densities$density[densities$cluster == LETTERS[i]] %<>%
+    { . * clust$parameters$pro[i] }
+}; rm(i)
+
+# This will be used to add cluster means (on the back-transformed scale) to the plot:
+annotations <- data.frame(x = unname(round(10^clust$parameters$mean, 1)),
+                          # y = seq(2.5, 5, length.out = length(levels(query_nchars$cluster))),
+                          y = rep(0.3, length(clust$parameters$pro)),
+                          cluster = factor(levels(wdqs_queries$cluster)))
+
+# Plot the log-normal densities:
+ggplot(data = densities) +
+  geom_line(aes(x = 10^n, y = density, color = cluster),
+            size = 1.1) +
+  xlab("Number of characters in query") +
+  ggtitle("Four distinct categories of query lengths") +
+  scale_color_discrete(name = "Group") +
+  geom_vline(data = annotations, linetype = "dashed",
+             aes(xintercept = x, color = cluster)) +
+  geom_text(data = annotations, aes(label = x, x = x, y = y)) +
+  wmf::theme_fivethirtynine() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank())
+
+# Clean up:
+rm(x, densities, annotations)
+```
+
+The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 413, 624, and 1181 characters.
+
+### Example queries
+
+#### Shortest queries
+
+```{r example_query_shortest}
+wdqs_queries %>%
+  dplyr::arrange(length) %>%
+  select(query) %>%
+  unique() %>%
+  head(25) %>%
+  unlist %>%
+  unname %>%
+  matrix(nrow = 5, ncol = 5) %>%
+  as.data.frame() %>%
+  knitr::kable(col.names = paste("column", 1:5))
+```
+
+#### Longest query
+
+```{r}
+wdqs_queries %>%
+  select(query, length) %>%
+  unique() %>%
+  dplyr::top_n(1, length) %>%
+  select(query) %>%
+  unlist %>%
+  cat
+```
+
+#### Examples of Category "A" queries:
+
+#### Examples of Category "B" queries:
+
+#### Examples of Category "C" queries:
+
+#### Examples of Category "D" queries:
 
 ## References
 
-- [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service)
-- [Wikidata query service/User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
+- [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service) and [WDQS User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
 - [*SPARQL* on Wikipedia](https://en.wikipedia.org/wiki/SPARQL)
+- [**mclust**](http://www.stat.washington.edu/mclust/): Normal Mixture Modeling for Model-Based Clustering, Classification, and Density Estimation by Fraley, C. and [Raftery, A.](https://en.wikipedia.org/wiki/Adrian_Raftery)
