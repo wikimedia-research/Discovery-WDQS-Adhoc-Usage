@@ -4,7 +4,7 @@ author: "Mikhail Popov"
 date: "October 5, 2015"
 output:
   html_document:
-    fig_caption: yes
+    fig_caption: no
     keep_md: yes
     toc: yes
   pdf_document:
@@ -45,7 +45,7 @@ summarize(group_by(users, countries), n = n())$countries %>%
 
 WDQS users are a very geographically diverse bunch! In fact, 73 different countries were represented between August 23<sup>rd</sup> and October 4<sup>th</sup>: Algeria, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Belarus, Belgium, Brazil, Bulgaria, Cambodia, Canada, Chile, China, Colombia, Croatia, Czech Republic, Denmark, Ecuador, Egypt, Estonia, Finland, France, Germany, Ghana, Greece, Guadeloupe, Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Latvia, Luxembourg, Malaysia, Mali, Malta, Martinique, Mexico, Montenegro, Nepal, Netherlands, New Zealand, Norway, Poland, Portugal, Qatar, Republic of Korea, Romania, Russia, Saudi Arabia, Serbia, Singapore, Slovak Republic, Slovenia, South Africa, Spain, Sri Lanka, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Kingdom, United States, Uruguay, Venezuela, and Vietnam.
 
-```{r top_10_countries, width = 4, height = 8, fig.cap = "U.S., U.K., Germany, and France are the top-represented countries, with U.S. leading the pack."}
+```{r top_10_countries, width = 4, height = 8}
 users %>%
   mutate(Country = ifelse(countries %in% top_n(countries),
                           countries, 'Other')) %>%
@@ -58,7 +58,9 @@ users %>%
   wmf::theme_fivethirtynine()
 ```
 
-```{r top_10_browsers, width = 8, height = 4, fig.cap = "Chrome and Firefox are, unsurprisingly, WDQS users' preferred browsers."}
+U.S., U.K., Germany, and France are the top-represented countries, with U.S. leading the pack.
+
+```{r top_10_browsers, width = 8, height = 4}
 users %>%
   mutate(Browser = ifelse(browser %in% top_n(browser, 5),
                           browser, 'Other')) %>%
@@ -71,7 +73,9 @@ users %>%
   wmf::theme_fivethirtynine()
 ```
 
-```{r top_10_oses, width = 4, height = 8, fig.cap = "Windows 7 and Mac OS X users are by far the most popular operating systems among WDQS users."}
+Chrome and Firefox are, unsurprisingly, WDQS users' preferred browsers.
+
+```{r top_10_oses, width = 4, height = 8}
 users %>%
   mutate(`Operating System` = ifelse(os %in% top_n(os, 10),
                                      os, 'Other')) %>%
@@ -84,9 +88,13 @@ users %>%
   wmf::theme_fivethirtynine()
 ```
 
-![Total queries over time and how many were the sample queries we provided for demonstration.](figures/queries.png)
+Windows 7 and Mac OS X users are by far the most popular operating systems among WDQS users.
 
-```{r queries_from_countries_over_time, width = 12, height = 6, fig.cap = "Varying patterns of WDQS usage by country (top 5 countries, over time). Purple dashes mark the public announcement."}
+![](figures/queries.png)
+
+Total queries over time and how many were the sample queries we provided for demonstration.
+
+```{r queries_from_countries_over_time, width = 12, height = 6}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -106,7 +114,9 @@ wdqs_queries %>%
   theme_bw()
 ```
 
-```{r users_from_countries_over_time, width = 12, height = 6, fig.cap = "Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users."}
+Varying patterns of WDQS usage by country (top 5 countries, over time). Purple dashes mark the public announcement.
+
+```{r users_from_countries_over_time, width = 12, height = 6}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -125,5 +135,7 @@ wdqs_queries %>%
   geom_line() +
   theme_bw()
 ```
+
+Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users.
 
 ## Example user-written queries
