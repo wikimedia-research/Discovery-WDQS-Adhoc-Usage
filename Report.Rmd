@@ -34,9 +34,30 @@ top_n <- function(x, n = 10) {
 
 ## Introduction
 
-### SPARQL
+The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses SPARQL as the query language. *SPARQL Protocol and RDF Query Language* (SPARQL) allows users to write queries against what can loosely be called "key-value" data or, more specifically, data that follows the RDF specification of the W3C. The entire database is thus a set of "subject-predicate-object" triples.
 
 ## Statistics
+
+```{r median_queries_per_user}
+wdqs_queries %>%
+  group_by(date, user_id) %>%
+  summarize(`queries per user` = n()) %>%
+  group_by(date) %>%
+  summarize(`median queries per user` = median(`queries per user`),
+            `25%` = quantile(`queries per user`, 0.25),
+            `75%` = quantile(`queries per user`, 0.75)) %>%
+  ggplot(data = .) +
+  geom_ribbon(aes(x = date, ymax = `75%`, ymin = `25%`),
+              alpha = 0.3) +
+  geom_vline(xintercept = as.numeric(as.Date("2015-09-07")),
+             linetype = "dashed", color = "purple") +
+  geom_text(x = as.numeric(as.Date("2015-09-14")), y = 60,
+            label = "Announcement", color = "purple") +
+  geom_line(aes(x = date, y = `median queries per user`)) +
+  wmf::theme_fivethirtynine()
+```
+
+The lower and upper bounds represent the first and third quartiles (25% and 75%). Here we can see that the number of queries per user has stabilized a lot after the announcement.
 
 ```{r countries, eval = FALSE}
 summarize(group_by(users, countries), n = n())$countries %>%
@@ -94,7 +115,7 @@ Windows 7 and Mac OS X users are by far the most popular operating systems among
 
 Total queries over time and how many were the sample queries we provided for demonstration.
 
-```{r queries_from_countries_over_time, width = 12, height = 6}
+```{r queries_from_countries_over_time, width = 8, height = 16}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -116,7 +137,7 @@ wdqs_queries %>%
 
 Varying patterns of WDQS usage by country (top 5 countries, over time). Purple dashes mark the public announcement.
 
-```{r users_from_countries_over_time, width = 12, height = 6}
+```{r users_from_countries_over_time, width = 8, height = 16}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -139,3 +160,9 @@ wdqs_queries %>%
 Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users.
 
 ## Example user-written queries
+
+## References
+
+- [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service)
+- [Wikidata query service/User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
+- [*SPARQL* on Wikipedia](https://en.wikipedia.org/wiki/SPARQL)

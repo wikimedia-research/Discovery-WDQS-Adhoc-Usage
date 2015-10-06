@@ -22,13 +22,13 @@ p1 <- queried_samples %>%
   group_by(date, example) %>%
   summarize(n = n()) %>%
   ggplot(data = ., aes(x = date, y = n, color = example)) +
-  geom_line() + ylab("Number of queries") +
+  geom_line(size = 1.5) + ylab("Number of queries") +
   wmf::theme_fivethirtynine()
 p2 <- wdqs_queries %>%
   group_by(date) %>%
   summarize(n = n()) %>%
   ggplot(data = ., aes(x = date, y = n)) +
-  geom_line() + ylab("Number of queries") +
+  geom_line(size = 1.5) + ylab("Number of queries") +
   wmf::theme_fivethirtynine()
 
 dir.create('figures')

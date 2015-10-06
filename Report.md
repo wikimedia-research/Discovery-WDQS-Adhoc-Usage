@@ -8,9 +8,13 @@ October 5, 2015
 
 ## Introduction
 
-### SPARQL
+The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses SPARQL as the query language. *SPARQL Protocol and RDF Query Language* (SPARQL) allows users to write queries against what can loosely be called "key-value" data or, more specifically, data that follows the RDF specification of the W3C. The entire database is thus a set of "subject-predicate-object" triples.
 
 ## Statistics
+
+![](Report_files/figure-html/median_queries_per_user-1.png) 
+
+The lower and upper bounds represent the first and third quartiles (25% and 75%). Here we can see that the number of queries per user has stabilized a lot after the announcement.
 
 
 
@@ -41,3 +45,9 @@ Varying patterns of WDQS usage by country (top 5 countries, over time). Purple d
 Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users.
 
 ## Example user-written queries
+
+## References
+
+- [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service)
+- [Wikidata query service/User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
+- [*SPARQL* on Wikipedia](https://en.wikipedia.org/wiki/SPARQL)
