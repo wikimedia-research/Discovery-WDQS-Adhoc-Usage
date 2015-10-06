@@ -60,7 +60,8 @@ get_wdqs_queries <- function(date = NULL) {
   wdqs_queries <- wdqs_queries[wdqs_queries$query != "", ]
   
   wdqs_queries$countries <- maxmind(ips = wdqs_queries$client_ip,
-                                    file = "/usr/local/share/GeoIP/GeoIP2-Country.mmdb", "country_name")
+                                    file = "/usr/local/share/GeoIP/GeoIP2-Country.mmdb",
+                                    fields = "country_name")$country_name
   
   wdqs_queries_ua <- parse_agents(wdqs_queries$user_agent)
   wdqs_queries <- cbind(wdqs_queries, wdqs_queries_ua)
@@ -74,8 +75,9 @@ get_wdqs_queries <- function(date = NULL) {
   # wdqs_queries %<>% cbind(., geocoded_data)
   
   ## Save results
-  save(list = "wdqs_queries", file = paste0("wdqs-queries_", date, ".RData"))
+  readr::write_csv(wdqs_queries, 'wdqs_queries.csv',
+                   append = file.exists('wdqs_queries.csv'))
 }
 
 # get_wdqs_queries() # test run
-lapply(seq(as.Date("2015-08-23"), Sys.Date()-2, "day"), get_wdqs_queries)
+lapply(seq(as.Date("2015-08-23"), Sys.Date()-1, "day"), get_wdqs_queries)
