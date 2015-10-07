@@ -10,7 +10,7 @@ import::from(dplyr, group_by, select, summarize,
 
 queried_samples <- wdqs_queries %>%
   keep_where(sample == 'yes') %>%
-  right_join(sample_queries, by = 'query') %>%
+  right_join(sample_queries[1:2, ], by = 'query') %>%
   select(c(example, user_id, date)) %>%
   left_join(users, by = 'user_id')
 

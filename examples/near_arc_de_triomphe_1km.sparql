@@ -1,0 +1,54 @@
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+  # Query to return latitudes and longitudes
+  # for places in Paris
+
+    SELECT ?a ?aLabel ?lat ?lon WHERE {
+#       ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+      
+       BIND(wd:Q64436 AS ?tgt) .   # Take the Arc de Triomphe
+       BIND(1.0 AS ?range) .       # at the centre of a 2km by 2km box (ie 1km to each nearest edge)
+       ?tgt p:P625/psv:P625/wikibase:geoLatitude  ?tgt_lat .
+       ?tgt p:P625/psv:P625/wikibase:geoLongitude ?tgt_lon .
+
+       BIND("3.14159265"^^xsd:double / "180"^^xsd:double AS ?deg_to_rad) .
+       BIND((?tgt_lat * ?deg_to_rad) AS ?tgt_lat_rad) . 
+       BIND((1.0 - 0.5 * ?tgt_lat_rad * ?tgt_lat_rad * (1.0 - ?tgt_lat_rad * ?tgt_lat_rad / 12.0)) AS ?cos_tgt_lat) .
+       BIND("6371"^^xsd:double AS ?r_earth) .
+       BIND((?r_earth * ?deg_to_rad) AS ?scNS) .                 # local scaling factor from degrees lat to km
+       BIND((?r_earth * ?deg_to_rad * ?cos_tgt_lat) AS ?scEW) .  # local scaling factor from degrees long to km
+
+       BIND((?range / ?scNS) AS ?d_lat) .
+       BIND((?range / ?scEW) AS ?d_lon) .
+
+       ?a wdt:P131+ wd:Q90 .                                     # administrative territorial entity = Paris
+       ?a p:P625 ?statement .                                    # coordinate-location statement
+       ?statement psv:P625 ?coordinate_node .
+       ?coordinate_node wikibase:geoLatitude  ?lat .
+       ?coordinate_node wikibase:geoLongitude ?lon .
+      
+       FILTER (?lat    < ?tgt_lat + ?d_lat) .
+       FILTER (?lat    > ?tgt_lat - ?d_lat) .
+       FILTER (?lon    < ?tgt_lon + ?d_lon) .
+       FILTER (?lon    > ?tgt_lon - ?d_lon) .
+      
+       BIND (((?lat - ?tgt_lat) * ?scNS)  AS ?d_NS) .
+       BIND (((?lon - ?tgt_lon) * ?scEW)  AS ?d_EW) . 
+       BIND ((?d_NS * ?d_NS + ?d_EW * ?d_EW)  AS ?r2) .
+      
+       FILTER (?r2 < ?range * ?range) .
+      
+
+       SERVICE wikibase:label {
+          bd:serviceParam wikibase:language "en" .
+       }
+    } ORDER BY ?r2 
+    # LIMIT 100

@@ -1,0 +1,12 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?h ?date WHERE {
+   ?h wdt:P31 wd:Q5 .
+   ?h wdt:P569 ?date .
+   OPTIONAL {?h wdt:P570 ?d } 
+   FILTER (?date < "1880-01-01T00:00:00Z"^^xsd:dateTime)
+   FILTER (!bound(?d))
+   } LIMIT 100

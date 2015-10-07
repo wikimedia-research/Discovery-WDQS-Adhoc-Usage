@@ -1,0 +1,34 @@
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+  # Query to return latitudes and longitudes
+  # for places in Paris
+
+    SELECT ?a ?aLabel ?lat ?long WHERE {
+#       ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+      
+       BIND(wd:Q64436 AS ?tgt) .
+       ?tgt p:P625/psv:P625/wikibase:geoLatitude ?tgt_lat .
+       ?tgt p:P625/psv:P625/wikibase:geoLongitude ?tgt_long .
+
+
+       ?a p:P625 ?statement . # coordinate-location statement
+       ?statement psv:P625 ?coordinate_node .
+       ?coordinate_node wikibase:geoLatitude ?lat .
+       ?coordinate_node wikibase:geoLongitude ?long .
+      
+       FILTER (ABS(?lat - ?tgt_lat) < 0.01)
+       FILTER (ABS(?long - ?tgt_long) < 0.01)
+      
+
+       SERVICE wikibase:label {
+          bd:serviceParam wikibase:language "en" .
+       }
+       } ORDER BY DESC(?lat) LIMIT 100

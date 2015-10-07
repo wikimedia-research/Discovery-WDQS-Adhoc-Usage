@@ -1,0 +1,23 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?pres ?presLabel ?spouse ?spouseLabel WHERE {
+   ?pres wdt:P31 wd:Q5 .
+
+   ?pres p:P39 ?position_held_statement .
+   ?position_held_statement v:P39 wd:Q11696 .
+   ?position_held_statement pq:P580 ?start .
+
+   ?pres wdt:P26 ?spouse .
+
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+   }
+
+ } ORDER BY ?start
+ 

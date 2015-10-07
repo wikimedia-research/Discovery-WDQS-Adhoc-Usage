@@ -1,0 +1,48 @@
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>prefix prov: <http://www.w3.org/ns/prov#>
+prefix pr: <http://www.wikidata.org/prop/reference/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+
+
+
+SELECT ?a ?aLabel ?taxo_1 ?taxo_2 ?commonscat ?bLabel WHERE {
+  
+   ?a wdt:P171* wd:Q14560 .   #  Cactaceae
+   ?a wdt:P171 ?b .           #  parent taxon
+  
+   {
+     SELECT DISTINCT ?a WHERE {
+        { ?a p:P225/prov:wasDerivedFrom/pr:P248 wd:Q13520496 }
+        UNION
+        { ?a p:P225/prov:wasDerivedFrom/pr:P248 wd:Q10695694 }
+     }
+   }
+  
+  OPTIONAL {
+     ?a p:P225  ?taxo_stmt .
+     ?taxo_stmt ps:P225 ?taxo_1 .    # taxonomic name
+     ?taxo_stmt prov:wasDerivedFrom ?ref .
+     ?ref pr:P248 wd:Q13520496 .   # Das große Kakteen-Lexikon
+  }
+  
+  OPTIONAL {
+     ?a p:P225  ?taxo_stmt2 .
+     ?taxo_stmt2 ps:P225 ?taxo_2 .   # taxonomic name
+     ?taxo_stmt2 prov:wasDerivedFrom ?ref2 .
+     ?ref2 pr:P248 wd:Q10695694 .   # New Cactus Lexicon
+  }
+
+  OPTIONAL {
+     ?a wdt:P373  ?commonscat .
+  }
+
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language "en" .
+  }
+
+  } ORDER BY ?aLabel

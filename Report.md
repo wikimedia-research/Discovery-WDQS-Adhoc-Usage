@@ -137,11 +137,11 @@ http://biohackathon.org/d3sparql/d3...        3
 
 We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
 
-We performed model-based clustering on the log10-transformed character counts. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
+We performed model-based clustering on the log10-transformed character counts of queries that were not sample queries we provided. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
 
 ![](Report_files/figure-html/nchar_clust-1.png) 
 
-The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 413, 624, and 1181 characters.
+The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 388, 621, and 1177 characters.
 
 ### Example queries
 
@@ -157,6 +157,8 @@ GIS        Putin      Berlin     Hitman     {SPAQL
 Q975       qqq        Darwin     SELECT     wallera  
 
 #### Longest query
+
+
 
 #### Examples of Category "A" queries:
 

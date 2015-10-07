@@ -1,0 +1,18 @@
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+prefix wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?s WHERE {
+  ?s p:%s ?st .
+  ?st q:P580 ?t .
+  OPTIONAL { ?st q:P582 ?t2 }
+  ?st wikibase:rank wikibase:NormalRank.
+  FILTER(!bound(?t2))
+  ?s p:%s ?st2 .
+  FILTER(?st2 != ?st)
+  OPTIONAL { ?s wdt:P570 ?d }
+  FILTER(!bound(?d))
+  ?st2 wikibase:rank wikibase:NormalRank.
+  %s
+  } LIMIT 10

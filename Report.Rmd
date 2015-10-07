@@ -236,7 +236,8 @@ wdqs_queries %>%
 
 ```{r nchar_hist, width = 10, height = 5}
 wdqs_queries %<>% mutate(length = nchar(query))
-ggplot(data = wdqs_queries, aes(x = length)) +
+ggplot(data = keep_where(wdqs_queries, sample == "no"),
+       aes(x = length)) +
   geom_histogram(binwidth = 100, alpha = 0.8) +
   xlab("Number of characters in query") +
   ggtitle("Distribution of query lengths:") +
@@ -245,18 +246,25 @@ ggplot(data = wdqs_queries, aes(x = length)) +
 
 We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
 
-We performed model-based clustering on the log10-transformed character counts. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
+We performed model-based clustering on the log10-transformed character counts of queries that were not sample queries we provided. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
 
 ```{r nchar_clust, cache = TRUE}
 # Use model-based clustering on the log10 transformed character counts:
 set.seed(0)
-wdqs_queries$log10length <- log10(wdqs_queries$length)
-clust <- Mclust(wdqs_queries$log10length, 4)
-wdqs_queries$cluster <- factor(LETTERS[clust$classification])
+wdqs_queries_nonexample <- wdqs_queries %>%
+  keep_where(sample == "no") %>%
+  mutate(log10length = log10(length))
+clust <- Mclust(wdqs_queries_nonexample$log10length, 4)
+wdqs_queries_nonexample$cluster <- factor(LETTERS[clust$classification])
+
+# Merge into overall dataset:
+wdqs_queries <- wdqs_queries_nonexample %>%
+  select(query_id, cluster) %>%
+  left_join(wdqs_queries, ., by = "query_id")
 
 # For calculating f(x):
-x = seq(min(wdqs_queries$log10length),
-        max(wdqs_queries$log10length),
+x = seq(min(wdqs_queries_nonexample$log10length),
+        max(wdqs_queries_nonexample$log10length),
         length.out = 1000)
 
 # Calculate the f(x) using the mean and sd of that cluster:
@@ -284,9 +292,8 @@ for (i in 1:length(clust$parameters$pro) ) {
 
 # This will be used to add cluster means (on the back-transformed scale) to the plot:
 annotations <- data.frame(x = unname(round(10^clust$parameters$mean, 1)),
-                          # y = seq(2.5, 5, length.out = length(levels(query_nchars$cluster))),
                           y = rep(0.3, length(clust$parameters$pro)),
-                          cluster = factor(levels(wdqs_queries$cluster)))
+                          cluster = factor(levels(wdqs_queries_nonexample$cluster)))
 
 # Plot the log-normal densities:
 ggplot(data = densities) +
@@ -305,10 +312,10 @@ ggplot(data = densities) +
         axis.line.y = element_blank())
 
 # Clean up:
-rm(x, densities, annotations)
+rm(x, densities, annotations, wdqs_queries_nonexample)
 ```
 
-The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 413, 624, and 1181 characters.
+The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 388, 621, and 1177 characters.
 
 ### Example queries
 
@@ -316,6 +323,7 @@ The most optimal model was a 4-component univariate mixture with unequal varianc
 
 ```{r example_query_shortest}
 wdqs_queries %>%
+  keep_where(sample == "no") %>%
   dplyr::arrange(length) %>%
   select(query) %>%
   unique() %>%
@@ -329,8 +337,9 @@ wdqs_queries %>%
 
 #### Longest query
 
-```{r}
+```{r longest_query, eval = FALSE}
 wdqs_queries %>%
+  keep_where(sample == "no") %>%
   select(query, length) %>%
   unique() %>%
   dplyr::top_n(1, length) %>%

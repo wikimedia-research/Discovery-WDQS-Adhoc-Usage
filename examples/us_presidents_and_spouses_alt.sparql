@@ -1,0 +1,15 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+  # Alternative query for the
+  # President and First Lady of the United States
+
+SELECT ?pres ?presLabel ?wife ?wifeLabel WHERE {
+   wd:Q30 wdt:P6 ?pres .
+   ?pres wdt:P26 ?wife .
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+   }
+   }

@@ -1,0 +1,23 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+
+SELECT DISTINCT ?city ?cityLabel ?mayor ?mayorLabel WHERE {
+  ?city wdt:P31/wdt:P279* wd:Q515 .  # find instances of subclasses of city
+  ?city p:P6 ?statement .            # with a P6 (head of goverment) statement
+  ?statement v:P6 ?mayor .           # ... that has the value ?mayor
+  ?mayor wdt:P21 wd:Q6581072 .       # ... where the ?mayor has P21 (sex or gender) female
+  FILTER NOT EXISTS { ?statement q:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+ 
+  # Now select the population value of the ?city
+  # (wdt: properties use only statements of "preferred" rank if any, usually meaning "current population")
+  ?city wdt:P1082 ?population .
+  # Optionally, find English labels for city and mayor:
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+  }
+  } ORDER BY DESC(?population) LIMIT 10

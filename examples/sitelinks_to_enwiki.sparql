@@ -1,0 +1,16 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?cid ?country ?article WHERE {
+    ?cid wdt:P31 wd:Q3624078 .
+    OPTIONAL {                     # add a label, if it is in English
+        ?cid rdfs:label ?country filter (lang(?country) = "en") .
+    }
+    OPTIONAL {                     # add a sitelinked article, if it is on en-wiki
+      ?article schema:about ?cid .
+      ?article schema:inLanguage "en" .
+      FILTER (SUBSTR(str(?article), 1, 25) = "https://en.wikipedia.org/")
+    }
+    }

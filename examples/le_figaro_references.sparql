@@ -1,0 +1,8 @@
+prefix prov: <http://www.w3.org/ns/prov#>
+prefix pr: <http://www.wikidata.org/prop/reference/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT (count(?ref) as ?mentions) WHERE {
+  ?statement prov:wasDerivedFrom ?ref .
+  ?ref pr:P248 wd:Q216047 .
+  ?ref pr:P577 ?date .
+  }

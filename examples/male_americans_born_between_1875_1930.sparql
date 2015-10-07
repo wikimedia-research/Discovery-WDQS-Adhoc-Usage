@@ -1,0 +1,32 @@
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+   # Query to find male Americans born after 1875 and before 1930 
+   # with day-specific date of death, but only year-specific date of birth
+
+#    SELECT (COUNT(*) AS ?count) WHERE {
+    SELECT ?a ?aLabel ?birth_date ?death_date WHERE {
+       ?a wdt:P27 wd:Q30 . 
+       ?a wdt:P21 wd:Q6581097 .
+       ?a p:P569/psv:P569 ?birth_date_node .
+       ?birth_date_node wikibase:timePrecision "9"^^xsd:integer .
+       ?a p:P570/psv:P570 ?death_date_node .
+       ?death_date_node wikibase:timePrecision "11"^^xsd:integer .
+       ?birth_date_node wikibase:timeValue ?birth_date .
+       ?death_date_node wikibase:timeValue ?death_date .
+       FILTER (year(?birth_date) > 1875) .
+       FILTER (year(?birth_date) < 1930)
+
+       SERVICE wikibase:label {
+         bd:serviceParam wikibase:language "en" .
+       }
+    } 
+    ORDER BY ?birth_date ?aLabel
+#    LIMIT 1000

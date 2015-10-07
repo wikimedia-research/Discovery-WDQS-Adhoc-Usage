@@ -1,0 +1,23 @@
+PREFIX wikibase: <http://wikiba.se/ontology#>
+prefix prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+prefix pr: <http://www.wikidata.org/prop/reference/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+SELECT ?statement ?subjectLabel ?subject ?propertyLabel ?property ?objectLabel ?object ?refURL WHERE {
+#SELECT ?ref ?refURL WHERE {
+  hint:Query hint:optimizer "None" .
+  ?ref pr:P854 ?refURL 
+  FILTER (CONTAINS(str(?refURL),'lefigaro.fr')) . 
+  ?statement prov:wasDerivedFrom ?ref .
+  ?subject ?p ?statement .
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+  }
+  } # LIMIT 10

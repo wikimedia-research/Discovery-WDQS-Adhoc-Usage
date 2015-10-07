@@ -1,0 +1,4 @@
+SELECT * WHERE {
+  ?s ?label "The Rolling Stones"@en .
+  ?s ?p ?o
+  }
