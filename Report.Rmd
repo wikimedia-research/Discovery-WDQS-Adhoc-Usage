@@ -19,6 +19,7 @@ library(knitr)
 library(scales)
 library(mclust)
 library(gridExtra)
+library(urltools)
 library(xts)
 library(dygraphs)
 import::from(dplyr, group_by, select, summarize,
@@ -356,6 +357,25 @@ top_referers_overall <- wdqs_refs %>%
 knitr::kable(top_referers_overall, digits = 2)
 ```
 
+```{r top_referers_overall_part_deux, as.is = TRUE}
+top_referers_overall_2 <- wdqs_refs %>%
+  # Do some url cleaning up before summarizing:
+  mutate(url = sub("query.wikidata.org/#.*", "query.wikidata.org/#…QUERY…", url)) %>%
+  mutate(url = ifelse(is.na(url), "--", url)) %>%
+  mutate(url = smart_trim(url, 50)) %>%
+  mutate(domain = urltools::domain(url)) %>%
+  # Summarize:
+  group_by(domain) %>%
+  summarize(total = sum(n)) %>%
+  mutate(`total total` = sum(total),
+         `% of total` = 100*total/`total total`) %>%
+  select(-`total total`) %>%
+  dplyr::top_n(20, total) %>%
+  dplyr::arrange(desc(total)) %>%
+  ungroup
+knitr::kable(top_referers_overall_2, digits = 2)
+```
+
 #### Daily visitors...
 
 **...from ourselves:**
@@ -385,13 +405,14 @@ daily_refs <- wdqs_refs %>%
   keep_where(!is.na(url)) %>%
   keep_where(url %notin% c('https://query.wikidata.org', 'https://query.wikidata.org/', 'https://query.wikidata.org/#…QUERY…')) %>%
   mutate(url = smart_trim(url, 50)) %>%
+  mutate(domain = urltools::domain(url)) %>%
   # Summarize:
-  group_by(date, url) %>%
+  group_by(date, domain) %>%
   summarize(total = sum(n)) %>%
   ungroup %>%
   # Throw away the referrers that aren't in the overall top 11:
-  keep_where(url %in% head(top_referers_overall$url, 11)) %>%
-  tidyr::spread(url, total, fill = 0) %>%
+  keep_where(domain %in% head(top_referers_overall_2$domain, 11)) %>%
+  tidyr::spread(domain, total, fill = 0) %>%
   # Make it xts-compatible:
   mutate(date = as.POSIXct(date)) %>%
   { xts(.[, -1], order.by = .$date) }
