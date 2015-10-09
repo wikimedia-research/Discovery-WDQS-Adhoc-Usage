@@ -2,5 +2,5 @@
 .Rhistory
 *.RData
 data/*
-*.html
+# *.html
 *_cache/*

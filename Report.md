@@ -1,6 +1,3 @@
-# Who is using Wikidata Query Service and how are they using it?
-Mikhail Popov  
-October 9, 2015  
 
 
 
@@ -10,27 +7,13 @@ October 9, 2015
 
 The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses *SPARQL Protocol and RDF Query Language* (SPARQL) as the query language.
 
-## Summary
-
-<div style="font-style:italic;">
-
-We announced the launch of WDQS on Labor Day (Monday, September 7th, 2014) and saw a huge spike in number of users. While the number of users has fallen over time (to around 100 users per day on average), we've seen high usage of the service.
-
-The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
-
-The majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems. A vast of majority of our users are coming to use the service directly, rather than coming to it from elsewhere on the Internet.
-
-As many as 56.48% of the queries are user-written. In reality, the actual number is smaller because the detection procedure did not take into account French translations of example queries that exist on MediaWiki/Wikitech.
-
-</div>
-
 ## Statistics
 
 ![](Report_files/figure-html/queries_per_day-1.png) 
 
 ![](Report_files/figure-html/users_per_day-1.png) 
 
-The number of users of the service has fallen since the announcement, vascillating around 100 users per day in the recent weeks.
+The number of users of the service has fallen since the announcement, vacillating at around 100 users per day in the recent weeks.
 
 ![](Report_files/figure-html/median_queries_per_user-1.png) 
 
@@ -38,7 +21,7 @@ The lower and upper bounds represent the first and third quartiles (25% and 75%)
 
 
 
-WDQS users are a very geographically diverse bunch! In fact, 73 different countries were represented between August 23<sup>rd</sup> and October 4<sup>th</sup>: Algeria, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Belarus, Belgium, Brazil, Bulgaria, Cambodia, Canada, Chile, China, Colombia, Croatia, Czech Republic, Denmark, Ecuador, Egypt, Estonia, Finland, France, Germany, Ghana, Greece, Guadeloupe, Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Latvia, Luxembourg, Malaysia, Mali, Malta, Martinique, Mexico, Montenegro, Nepal, Netherlands, New Zealand, Norway, Poland, Portugal, Qatar, Republic of Korea, Romania, Russia, Saudi Arabia, Serbia, Singapore, Slovak Republic, Slovenia, South Africa, Spain, Sri Lanka, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Kingdom, United States, Uruguay, Venezuela, and Vietnam.
+WDQS users are a very geographically diverse bunch! In fact, 73 different countries[^countries] were represented between August 23<sup>rd</sup> and October 4<sup>th</sup>.
 
 ![](Report_files/figure-html/top_10_countries-1.png) 
 
@@ -198,28 +181,28 @@ https://www.google.com/?gws_rd=ssl#q=news                   10         0.07
 https://www.wikidata.org/wiki/Wikidata:Bistro               10         0.07
 
 
-domain                                 total   % of total
-------------------------------------  ------  -----------
---                                     13269        88.13
-query.wikidata.org                      1063         7.06
-www.wikidata.org/wiki/wikidata           182         1.21
-www.facebook.com                         103         0.68
-tools.wmflabs.org                         65         0.43
-www.google.com                            57         0.38
-www.traackr.com                           29         0.19
-m.facebook.com                            28         0.19
-longurl.org                               26         0.17
-jamiembrown.com                           21         0.14
-accounts.google.com                       18         0.12
-www.rebelmouse.com                        15         0.10
-en.planet.wikimedia.org                   14         0.09
-www.google.de                             13         0.09
-magnusmanske.de                            9         0.06
-www.google.it                              9         0.06
-www.wikidata.org/wiki/property_talk        9         0.06
-it.wikisource.org/wiki/wikisource          8         0.05
-www.google.co.uk                           7         0.05
-www.google.nl                              7         0.05
+domain                     total   % of total
+------------------------  ------  -----------
+--                         13269        88.13
+query.wikidata.org          1063         7.06
+www.wikidata.org             192         1.28
+www.facebook.com             103         0.68
+tools.wmflabs.org             65         0.43
+www.google.com                57         0.38
+www.traackr.com               29         0.19
+m.facebook.com                28         0.19
+longurl.org                   26         0.17
+jamiembrown.com               21         0.14
+accounts.google.com           18         0.12
+www.rebelmouse.com            15         0.10
+en.planet.wikimedia.org       14         0.09
+www.google.de                 13         0.09
+magnusmanske.de                9         0.06
+www.google.it                  9         0.06
+it.wikisource.org              8         0.05
+www.google.co.uk               7         0.05
+www.google.nl                  7         0.05
+www.google.fr                  6         0.04
 
 #### Daily visitors...
 
@@ -229,14 +212,16 @@ www.google.nl                              7         0.05
 
 **...from others:**
 
-<!--html_preserve--><div id="htmlwidget-8437" style="width:95%;height:480px;" class="dygraphs"></div>
-<script type="application/json" data-for="htmlwidget-8437">{"x":{"attrs":{"xlabel":"Date","ylabel":"Visitors","labels":["day","accounts.google.com","jamiembrown.com","longurl.org","m.facebook.com","query.wikidata.org","tools.wmflabs.org","www.facebook.com","www.google.com","www.traackr.com","www.wikidata.org/wiki/wikidata"],"retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":50}},"stackedGraph":false,"fillGraph":false,"fillAlpha":0.15,"stepPlot":false,"drawPoints":false,"pointSize":3,"drawGapEdgePoints":false,"connectSeparatedPoints":false,"strokeWidth":2,"strokeBorderColor":"white","colors":["#F8766D","#D89000","#A3A500","#39B600","#00BF7D","#00BFC4","#00B0F6","#9590FF","#E76BF3","#FF62BC"],"colorValue":0.5,"colorSaturation":1,"drawXAxis":true,"drawYAxis":true,"includeZero":false,"drawAxesAtZero":false,"logscale":false,"axisTickSize":3,"axisLineColor":"black","axisLineWidth":0.3,"axisLabelColor":"black","axisLabelFontSize":14,"axisLabelWidth":50,"drawGrid":true,"gridLineWidth":0.3,"rightGap":5,"digitsAfterDecimal":2,"labelsKMB":true,"labelsKMG2":false,"maxNumberWidth":6,"animatedZooms":false,"legend":"always","labelsDivWidth":250,"labelsShowZeroValues":false,"labelsDiv":"refer_labels","labelsSeparateLines":false,"hideOverlayOnMouseOut":true},"scale":"daily","annotations":[],"shadings":[],"events":[],"data":[["2015-08-25T00:00:00Z","2015-08-26T00:00:00Z","2015-08-27T00:00:00Z","2015-08-30T00:00:00Z","2015-09-02T00:00:00Z","2015-09-03T00:00:00Z","2015-09-06T00:00:00Z","2015-09-08T00:00:00Z","2015-09-09T00:00:00Z","2015-09-10T00:00:00Z","2015-09-11T00:00:00Z","2015-09-12T00:00:00Z","2015-09-13T00:00:00Z","2015-09-14T00:00:00Z","2015-09-15T00:00:00Z","2015-09-16T00:00:00Z","2015-09-17T00:00:00Z","2015-09-18T00:00:00Z","2015-09-19T00:00:00Z","2015-09-20T00:00:00Z","2015-09-21T00:00:00Z","2015-09-22T00:00:00Z","2015-09-23T00:00:00Z","2015-09-24T00:00:00Z","2015-09-25T00:00:00Z","2015-09-26T00:00:00Z","2015-09-27T00:00:00Z","2015-09-28T00:00:00Z","2015-09-29T00:00:00Z","2015-09-30T00:00:00Z","2015-10-01T00:00:00Z","2015-10-02T00:00:00Z","2015-10-03T00:00:00Z","2015-10-04T00:00:00Z"],[0,0,0,0,0,0,0,8,2,1,1,0,0,2,1,0,1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,15,3,1,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,5,9,2,0,1,0,0,0,0,8,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,20,2,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[3,1,2,2,1,1,4,3,1,0,3,0,0,1,0,1,2,1,0,0,7,19,4,1,2,2,0,0,0,0,0,2,0,2],[0,0,0,0,0,0,0,45,35,1,14,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,1,0,0,0,0,0],[0,0,0,0,0,0,0,18,14,2,5,1,0,1,0,0,5,0,1,1,2,0,1,1,0,0,0,1,1,0,0,1,0,2],[0,0,0,0,0,0,0,10,0,6,0,0,0,0,0,4,6,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0],[0,0,0,0,0,4,0,7,6,10,6,3,2,10,14,9,9,5,4,3,12,5,6,11,3,5,6,1,7,9,9,8,2,6]],"fixedtz":false,"tzone":""},"evals":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-400" style="width:95%;height:480px;" class="dygraphs"></div>
+<script type="application/json" data-for="htmlwidget-400">{"x":{"attrs":{"title":"Daily visitors from top 4 referrers","xlabel":"Date","ylabel":"Visitors","labels":["day","tools.wmflabs.org","www.facebook.com","www.google.com","www.wikidata.org"],"retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":50}},"stackedGraph":false,"fillGraph":false,"fillAlpha":0.15,"stepPlot":false,"drawPoints":false,"pointSize":3,"drawGapEdgePoints":false,"connectSeparatedPoints":false,"strokeWidth":2,"strokeBorderColor":"white","colors":["#F8766D","#7CAE00","#00BFC4","#C77CFF"],"colorValue":0.5,"colorSaturation":1,"drawXAxis":true,"drawYAxis":true,"includeZero":false,"drawAxesAtZero":false,"logscale":false,"axisTickSize":3,"axisLineColor":"black","axisLineWidth":0.3,"axisLabelColor":"black","axisLabelFontSize":14,"axisLabelWidth":50,"drawGrid":true,"gridLineWidth":0.3,"rightGap":5,"digitsAfterDecimal":2,"labelsKMB":true,"labelsKMG2":false,"maxNumberWidth":6,"animatedZooms":false,"legend":"always","labelsDivWidth":250,"labelsShowZeroValues":false,"labelsDiv":"refer_labels","labelsSeparateLines":false,"hideOverlayOnMouseOut":true},"scale":"daily","annotations":[],"shadings":[],"events":[],"data":[["2015-08-25T00:00:00Z","2015-08-26T00:00:00Z","2015-08-27T00:00:00Z","2015-08-30T00:00:00Z","2015-09-02T00:00:00Z","2015-09-03T00:00:00Z","2015-09-06T00:00:00Z","2015-09-08T00:00:00Z","2015-09-09T00:00:00Z","2015-09-10T00:00:00Z","2015-09-11T00:00:00Z","2015-09-12T00:00:00Z","2015-09-13T00:00:00Z","2015-09-14T00:00:00Z","2015-09-15T00:00:00Z","2015-09-16T00:00:00Z","2015-09-17T00:00:00Z","2015-09-18T00:00:00Z","2015-09-19T00:00:00Z","2015-09-20T00:00:00Z","2015-09-21T00:00:00Z","2015-09-22T00:00:00Z","2015-09-23T00:00:00Z","2015-09-24T00:00:00Z","2015-09-25T00:00:00Z","2015-09-26T00:00:00Z","2015-09-27T00:00:00Z","2015-09-28T00:00:00Z","2015-09-29T00:00:00Z","2015-09-30T00:00:00Z","2015-10-01T00:00:00Z","2015-10-02T00:00:00Z","2015-10-03T00:00:00Z","2015-10-04T00:00:00Z"],[3,1,2,2,1,1,4,3,1,0,3,0,0,1,0,1,2,1,0,0,7,19,4,1,2,2,0,0,0,0,0,2,0,2],[0,0,0,0,0,0,0,45,35,1,14,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,1,0,0,0,0,0],[0,0,0,0,0,0,0,18,14,2,5,1,0,1,0,0,5,0,1,1,2,0,1,1,0,0,0,1,1,0,0,1,0,2],[0,0,0,0,0,4,0,7,6,10,6,3,3,11,14,10,9,5,5,4,13,5,7,11,3,5,6,1,8,9,9,8,3,7]],"fixedtz":false,"tzone":""},"evals":[]}</script><!--/html_preserve-->
 
 _**Note** that this is an interactive graph like the ones we use in Discovery Dashboards. Mouse-over to see the values of the time series in the legend. You can also zoom in on a particular range. (Zoom out by double-clicking.)_
 
 <strong>Legend:</strong>
 
 <div id="refer_labels"></div>
+
+
 
 #### Top referrers (of query requests):
 
@@ -259,8 +244,6 @@ The referers were shortened for privacy and space reasons as they contained quer
 
 ![](Report_files/figure-html/nchar_hist-1.png) 
 
-Gray represents the distribution of the raw query lengths, while the light blue represents the distribution of query lengths after stripping out tabs and excessive spaces ("condensed queries").
-
 We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
 
 We performed model-based clustering on the log10-transformed character counts of condensed queries that were "definitely not" sample queries we provided. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
@@ -274,13 +257,13 @@ The most optimal model was a 2-component univariate mixture with unequal varianc
 #### Shortest queries
 
 
-column 1   column 2   column 3   column 4   column 5 
----------  ---------  ---------  ---------  ---------
-a          _O_O       cpi        Django     Poland   
-{          isis       house      PREFIX     ASK {}   
-l          Paris      turku      Fruits     iraq     
-GIS        Putin      Berlin     Hitman     {SPAQL   
-Q975       qqq        Darwin     SELECT     wallera  
+&nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;  
+-------  -------  -------  -------  --------
+a        _O_O     cpi      Django   Poland  
+{        isis     house    PREFIX   ASK {}  
+l        Paris    turku    Fruits   iraq    
+GIS      Putin    Berlin   Hitman   {SPAQL  
+Q975     qqq      Darwin   SELECT   wallera 
 
 #### Some of the longer queries
 
@@ -474,10 +457,12 @@ Furthermore, for the sake of time, we did not include example queries from other
 
 ## Acknowledgements
 
-We would like to thank Trey Jones for his advice in dealing with approximate string matching.
+We would like to thank Trey Jones for his advice in dealing with approximate string matching, and Oliver Keyes for his review of this report and helpful feedback.
 
 ## References
 
 - [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service) and [WDQS User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
 - [*SPARQL* on Wikipedia](https://en.wikipedia.org/wiki/SPARQL)
 - [**mclust**](http://www.stat.washington.edu/mclust/): Normal Mixture Modeling for Model-Based Clustering, Classification, and Density Estimation by Fraley, C. and [Raftery, A.](https://en.wikipedia.org/wiki/Adrian_Raftery)
+
+[^countries]: The countries are: Algeria, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Belarus, Belgium, Brazil, Bulgaria, Cambodia, Canada, Chile, China, Colombia, Croatia, Czech Republic, Denmark, Ecuador, Egypt, Estonia, Finland, France, Germany, Ghana, Greece, Guadeloupe, Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Latvia, Luxembourg, Malaysia, Mali, Malta, Martinique, Mexico, Montenegro, Nepal, Netherlands, New Zealand, Norway, Poland, Portugal, Qatar, Republic of Korea, Romania, Russia, Saudi Arabia, Serbia, Singapore, Slovak Republic, Slovenia, South Africa, Spain, Sri Lanka, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Kingdom, United States, Uruguay, Venezuela, and Vietnam.

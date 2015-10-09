@@ -1,14 +1,11 @@
 ---
-title: "Who is using Wikidata Query Service and how are they using it?"
-author: "Mikhail Popov"
-date: "October 9, 2015"
 output:
   html_document:
+    css: Report.css
     fig_width: 10
+    includes:
+      before_body: Summary.html
     keep_md: yes
-    toc: yes
-  pdf_document:
-    fig_caption: yes
     toc: yes
 ---
 
@@ -19,7 +16,7 @@ library(knitr)
 library(scales)
 library(mclust)
 library(gridExtra)
-library(urltools)
+library(urltools) # devtools::install_github('ironholds/urltools')
 library(xts)
 library(dygraphs)
 import::from(dplyr, group_by, select, summarize,
@@ -46,20 +43,6 @@ smart_trim <- function(x, width) {
 
 The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses *SPARQL Protocol and RDF Query Language* (SPARQL) as the query language.
 
-## Summary
-
-<div style="font-style:italic;">
-
-We announced the launch of WDQS on Labor Day (Monday, September 7th, 2014) and saw a huge spike in number of users. While the number of users has fallen over time (to around 100 users per day on average), we've seen high usage of the service.
-
-The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
-
-The majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems. A vast of majority of our users are coming to use the service directly, rather than coming to it from elsewhere on the Internet.
-
-As many as 56.48% of the queries are user-written. In reality, the actual number is smaller because the detection procedure did not take into account French translations of example queries that exist on MediaWiki/Wikitech.
-
-</div>
-
 ## Statistics
 
 ```{r queries_per_day}
@@ -72,6 +55,7 @@ wdqs_queries %>%
              linetype = "dashed", color = "purple") +
   geom_text(x = as.numeric(as.Date("2015-09-01")), y = 1000,
             label = "Announcement", color = "purple") +
+  ggtitle("Daily service usage (total queries per day)") +
   wmf::theme_fivethirtynine()
 ```
 
@@ -88,10 +72,11 @@ wdqs_queries %>%
              linetype = "dashed", color = "purple") +
   geom_text(x = as.numeric(as.Date("2015-09-01")), y = 400,
             label = "Announcement", color = "purple") +
+  ggtitle("Daily service usage (total users per day)") +
   wmf::theme_fivethirtynine()
 ```
 
-The number of users of the service has fallen since the announcement, vascillating around 100 users per day in the recent weeks.
+The number of users of the service has fallen since the announcement, vacillating at around 100 users per day in the recent weeks.
 
 ```{r median_queries_per_user}
 wdqs_queries %>%
@@ -109,6 +94,7 @@ wdqs_queries %>%
   geom_text(x = as.numeric(as.Date("2015-09-14")), y = 60,
             label = "Announcement", color = "purple") +
   geom_line(aes(x = date, y = `median queries per user`)) +
+  ggtitle("Median queries per user per day") +
   wmf::theme_fivethirtynine()
 ```
 
@@ -119,7 +105,7 @@ summarize(group_by(users, countries), n = n())$countries %>%
   sort %>% paste0(collapse = ', ') %>% print
 ```
 
-WDQS users are a very geographically diverse bunch! In fact, 73 different countries were represented between August 23<sup>rd</sup> and October 4<sup>th</sup>: Algeria, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Belarus, Belgium, Brazil, Bulgaria, Cambodia, Canada, Chile, China, Colombia, Croatia, Czech Republic, Denmark, Ecuador, Egypt, Estonia, Finland, France, Germany, Ghana, Greece, Guadeloupe, Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Latvia, Luxembourg, Malaysia, Mali, Malta, Martinique, Mexico, Montenegro, Nepal, Netherlands, New Zealand, Norway, Poland, Portugal, Qatar, Republic of Korea, Romania, Russia, Saudi Arabia, Serbia, Singapore, Slovak Republic, Slovenia, South Africa, Spain, Sri Lanka, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Kingdom, United States, Uruguay, Venezuela, and Vietnam.
+WDQS users are a very geographically diverse bunch! In fact, 73 different countries[^countries] were represented between August 23<sup>rd</sup> and October 4<sup>th</sup>.
 
 ```{r top_10_countries, width = 4, height = 8}
 users %>%
@@ -223,7 +209,8 @@ wdqs_queries %>%
             data = wdqs_queries %>%
               group_by(date) %>%
               summarize(n = n()),
-            linetype = "dashed")
+            linetype = "dashed") +
+  ggtitle("Total queries, example queries, and user-written queries over time")
 ```
 
 Total queries (black dashes) over time and how many were the sample queries we provided for demonstration.
@@ -261,7 +248,8 @@ wdqs_queries %>%
              linetype = "dashed", color = "purple") +
   # geom_smooth(method = "loess", se = FALSE) +
   geom_line() +
-  theme_bw()
+  theme_bw() +
+  ggtitle("Usage in top 5 countries (by total queries)")
 ```
 
 Varying patterns of WDQS usage by country (top 5 countries, over time). Purple dashes mark the public announcement.
@@ -283,7 +271,8 @@ wdqs_queries %>%
              linetype = "dashed", color = "purple") +
   # geom_smooth(method = "loess", se = FALSE) +
   geom_line() +
-  theme_bw()
+  theme_bw() +
+  ggtitle("Users in top 5 countries (by total queries)")
 ```
 
 Varying patterns of WDQS unique users by country (top 5 countries, over time). Purple dashes mark the public announcement. What is very interesting is that South Korea is a top 5 country in usage but with barely any users.
@@ -398,12 +387,10 @@ wdqs_refs %>%
 
 **...from others:**
 
-```{r top_referers_daily, as.is = TRUE}
+```{r top_referers_daily_dynamic, eval = TRUE}
 daily_refs <- wdqs_refs %>%
   # Perform the same cleanup procedure as above:
-  mutate(url = sub("query.wikidata.org/#.*", "query.wikidata.org/#…QUERY…", url)) %>%
-  keep_where(!is.na(url)) %>%
-  keep_where(url %notin% c('https://query.wikidata.org', 'https://query.wikidata.org/', 'https://query.wikidata.org/#…QUERY…')) %>%
+  keep_where(!is.na(url) & !grepl("query.wikidata.org", url)) %>%
   mutate(url = smart_trim(url, 50)) %>%
   mutate(domain = urltools::domain(url)) %>%
   # Summarize:
@@ -411,14 +398,15 @@ daily_refs <- wdqs_refs %>%
   summarize(total = sum(n)) %>%
   ungroup %>%
   # Throw away the referrers that aren't in the overall top 11:
-  keep_where(domain %in% head(top_referers_overall_2$domain, 11)) %>%
+  keep_where(domain %in% head(top_referers_overall_2$domain, 6)) %>%
   tidyr::spread(domain, total, fill = 0) %>%
   # Make it xts-compatible:
   mutate(date = as.POSIXct(date)) %>%
   { xts(.[, -1], order.by = .$date) }
 # Plot it!
 dygraph(daily_refs, width = "95%",
-          xlab = "Date", ylab = "Visitors") %>%
+        main = "Daily visitors from top 4 referrers",
+        xlab = "Date", ylab = "Visitors") %>%
   dyOptions(colors = scales::hue_pal()(ncol(daily_refs)),
             labelsKMB = TRUE, pointSize = 3, strokeWidth = 2) %>%
   dyLegend(show = "always", showZeroValues = FALSE,
@@ -430,6 +418,23 @@ _**Note** that this is an interactive graph like the ones we use in Discovery Da
 <strong>Legend:</strong>
 
 <div id="refer_labels"></div>
+
+```{r top_referers_daily_static, eval = FALSE}
+wdqs_refs %>%
+  # Perform the same cleanup procedure as above:
+  keep_where(!is.na(url) & !grepl("query.wikidata.org", url)) %>%
+  mutate(url = smart_trim(url, 50)) %>%
+  mutate(domain = urltools::domain(url)) %>%
+  # Summarize:
+  group_by(date, domain) %>%
+  summarize(total = sum(n)) %>%
+  ungroup %>%
+  # Throw away the referrers that aren't in the overall top 11:
+  keep_where(domain %in% head(top_referers_overall_2$domain, 6)) %>%
+  ggplot(data = .) +
+  geom_line(aes(x = date, y = total, color = domain)) +
+  wmf::theme_fivethirtynine()
+```
 
 #### Top referrers (of query requests):
 
@@ -452,17 +457,19 @@ The referers were shortened for privacy and space reasons as they contained quer
 ### Query lengths
 
 ```{r nchar_hist}
-ggplot(data = keep_where(wdqs_queries, sample == "definitely no"),
-       aes(x = length)) +
-  geom_histogram(binwidth = 75, alpha = 0.8) +
-  geom_histogram(aes(x = length_condensed), binwidth = 75,
-                 alpha = 0.8, fill = "cornflowerblue") +
+wdqs_queries %>%
+  keep_where(sample == "definitely no") %>%
+  select(c(length, length_condensed)) %>%
+  dplyr::rename(`Query` = length,
+                `Condensed query` = length_condensed) %>%
+  tidyr::gather(`Length of`, value, 1:2) %>%
+  ggplot(data = .,
+         aes(x = value, fill = `Length of`)) +
+  geom_density(alpha = 0.5, adjust = 3) +
   xlab("Number of characters in query") +
   ggtitle("Distribution of (definitely not example) query lengths") +
   wmf::theme_fivethirtynine()
 ```
-
-Gray represents the distribution of the raw query lengths, while the light blue represents the distribution of query lengths after stripping out tabs and excessive spaces ("condensed queries").
 
 We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
 
@@ -521,7 +528,7 @@ ggplot(data = densities) +
   geom_line(aes(x = 10^n, y = density, color = cluster),
             size = 1.1) +
   xlab("Number of characters in query") +
-  ggtitle("Four distinct categories of query lengths") +
+  ggtitle("Two distinct categories of query lengths") +
   scale_color_discrete(name = "Group") +
   geom_vline(data = annotations, linetype = "dashed",
              aes(xintercept = x, color = cluster)) +
@@ -554,7 +561,7 @@ wdqs_queries %>%
   unname %>%
   matrix(nrow = 5, ncol = 5) %>%
   as.data.frame() %>%
-  knitr::kable(col.names = paste("column", 1:5))
+  knitr::kable(col.names = rep("&nbsp;", 5))
 ```
 
 #### Some of the longer queries
@@ -646,10 +653,12 @@ Furthermore, for the sake of time, we did not include example queries from other
 
 ## Acknowledgements
 
-We would like to thank Trey Jones for his advice in dealing with approximate string matching.
+We would like to thank Trey Jones for his advice in dealing with approximate string matching, and Oliver Keyes for his review of this report and helpful feedback.
 
 ## References
 
 - [*Wikidata query service* on MediaWiki](https://www.mediawiki.org/wiki/Wikidata_query_service) and [WDQS User Manual](https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual)
 - [*SPARQL* on Wikipedia](https://en.wikipedia.org/wiki/SPARQL)
 - [**mclust**](http://www.stat.washington.edu/mclust/): Normal Mixture Modeling for Model-Based Clustering, Classification, and Density Estimation by Fraley, C. and [Raftery, A.](https://en.wikipedia.org/wiki/Adrian_Raftery)
+
+[^countries]: The countries are: Algeria, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Belarus, Belgium, Brazil, Bulgaria, Cambodia, Canada, Chile, China, Colombia, Croatia, Czech Republic, Denmark, Ecuador, Egypt, Estonia, Finland, France, Germany, Ghana, Greece, Guadeloupe, Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Latvia, Luxembourg, Malaysia, Mali, Malta, Martinique, Mexico, Montenegro, Nepal, Netherlands, New Zealand, Norway, Poland, Portugal, Qatar, Republic of Korea, Romania, Russia, Saudi Arabia, Serbia, Singapore, Slovak Republic, Slovenia, South Africa, Spain, Sri Lanka, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Kingdom, United States, Uruguay, Venezuela, and Vietnam.
