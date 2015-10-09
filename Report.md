@@ -1,6 +1,6 @@
 # Who is using Wikidata Query Service and how are they using it?
 Mikhail Popov  
-October 8, 2015  
+October 9, 2015  
 
 
 
@@ -12,13 +12,25 @@ The Wikidata Query Service (WDQS) is designed to let users run queries on the da
 
 ## Summary
 
+<div style="font-style:italic;">
 
+We announced the launch of WDQS on Labor Day (Monday, September 7th, 2014) and saw a huge spike in number of users. While the number of users has fallen over time (to around 100 users per day on average), we've seen high usage of the service.
+
+The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
+
+The majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems. A vast of majority of our users are coming to use the service directly, rather than coming to it from elsewhere on the Internet.
+
+As many as 56.48% of the queries are user-written. In reality, the actual number is smaller because the detection procedure did not take into account French translations of example queries that exist on MediaWiki/Wikitech.
+
+</div>
 
 ## Statistics
 
 ![](Report_files/figure-html/queries_per_day-1.png) 
 
 ![](Report_files/figure-html/users_per_day-1.png) 
+
+The number of users of the service has fallen since the announcement, vascillating around 100 users per day in the recent weeks.
 
 ![](Report_files/figure-html/median_queries_per_user-1.png) 
 
@@ -94,8 +106,6 @@ Varying patterns of WDQS unique users by country (top 5 countries, over time). P
 
 ### Who are our most active users?
 
-**Note**: "user_id" is an anonymous identification marker created post-hoc from IP address and user agent. It is used for linking queries.
-
 #### Top 20 users by total queries
 
 
@@ -161,7 +171,50 @@ Varying patterns of WDQS unique users by country (top 5 countries, over time). P
 
 
 
-### Top referers
+### Referrers
+
+
+url                                                      total   % of total
+------------------------------------------------------  ------  -----------
+--                                                       13269        88.13
+https://query.wikidata.org/                                661         4.39
+https://query.wikidata.org/#…QUERY…                        355         2.36
+https://www.wikidata.org/wiki/Wikidata:Data_access         172         1.14
+https://www.facebook.com/gertruda                           70         0.46
+https://query.wikidata.org                                  46         0.31
+https://tools.wmflabs.org/ppp-sparql/                       37         0.25
+http://www.traackr.com/                                     29         0.19
+http://www.google.com/                                      28         0.19
+http://longurl.org                                          26         0.17
+https://m.facebook.com/?_rdr                                26         0.17
+https://www.facebook.com/                                   24         0.16
+http://jamiembrown.com/                                     21         0.14
+http://tools.wmflabs.org/wdq2sparql/w2s.php                 20         0.13
+https://accounts.google.com/ServiceLogin?service=m...       15         0.10
+https://www.rebelmouse.com/                                 15         0.10
+https://en.planet.wikimedia.org/                            14         0.09
+https://www.google.com/                                     13         0.09
+https://www.google.com/?gws_rd=ssl#q=news                   10         0.07
+https://www.wikidata.org/wiki/Wikidata:Bistro               10         0.07
+
+#### Daily visitors...
+
+**...from ourselves:**
+
+![](Report_files/figure-html/top_refers_daily_self-1.png) 
+
+**...from others:**
+
+<!--html_preserve--><div id="htmlwidget-4169" style="width:95%;height:480px;" class="dygraphs"></div>
+<script type="application/json" data-for="htmlwidget-4169">{"x":{"attrs":{"xlabel":"Date","ylabel":"Visitors","labels":["day","http://longurl.org","http://www.google.com/","http://www.traackr.com/","https://m.facebook.com/?_rdr","https://tools.wmflabs.org/ppp-sparql/","https://www.facebook.com/gertruda","https://www.wikidata.org/wiki/Wikidata:Data_access"],"retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":50}},"stackedGraph":false,"fillGraph":false,"fillAlpha":0.15,"stepPlot":false,"drawPoints":false,"pointSize":3,"drawGapEdgePoints":false,"connectSeparatedPoints":false,"strokeWidth":2,"strokeBorderColor":"white","colors":["#F8766D","#C49A00","#53B400","#00C094","#00B6EB","#A58AFF","#FB61D7"],"colorValue":0.5,"colorSaturation":1,"drawXAxis":true,"drawYAxis":true,"includeZero":false,"drawAxesAtZero":false,"logscale":false,"axisTickSize":3,"axisLineColor":"black","axisLineWidth":0.3,"axisLabelColor":"black","axisLabelFontSize":14,"axisLabelWidth":50,"drawGrid":true,"gridLineWidth":0.3,"rightGap":5,"digitsAfterDecimal":2,"labelsKMB":true,"labelsKMG2":false,"maxNumberWidth":6,"animatedZooms":false,"legend":"always","labelsDivWidth":250,"labelsShowZeroValues":false,"labelsDiv":"refer_labels","labelsSeparateLines":false,"hideOverlayOnMouseOut":true},"scale":"daily","annotations":[],"shadings":[],"events":[],"data":[["2015-09-03T00:00:00Z","2015-09-08T00:00:00Z","2015-09-09T00:00:00Z","2015-09-10T00:00:00Z","2015-09-11T00:00:00Z","2015-09-12T00:00:00Z","2015-09-13T00:00:00Z","2015-09-14T00:00:00Z","2015-09-15T00:00:00Z","2015-09-16T00:00:00Z","2015-09-17T00:00:00Z","2015-09-18T00:00:00Z","2015-09-19T00:00:00Z","2015-09-20T00:00:00Z","2015-09-21T00:00:00Z","2015-09-22T00:00:00Z","2015-09-23T00:00:00Z","2015-09-24T00:00:00Z","2015-09-25T00:00:00Z","2015-09-26T00:00:00Z","2015-09-27T00:00:00Z","2015-09-28T00:00:00Z","2015-09-29T00:00:00Z","2015-09-30T00:00:00Z","2015-10-01T00:00:00Z","2015-10-02T00:00:00Z","2015-10-03T00:00:00Z","2015-10-04T00:00:00Z"],[0,5,9,2,0,1,0,0,0,0,8,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],[0,12,12,0,2,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,10,0,6,0,0,0,0,0,4,6,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0],[0,20,2,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0],[0,0,0,0,3,0,0,1,0,0,0,0,0,0,7,18,2,1,1,0,0,0,0,0,0,2,0,2],[0,26,32,0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[4,7,6,10,6,3,2,10,14,9,9,3,3,2,9,5,6,11,2,3,6,1,7,9,9,8,2,6]],"fixedtz":false,"tzone":""},"evals":[]}</script><!--/html_preserve-->
+
+_**Note** that this is an interactive graph like the ones we use in Discovery Dashboards. Mouse-over to see the values of the time series in the legend. You can also zoom in on a particular range. (Zoom out by double-clicking.)_
+
+<strong>Legend:</strong>
+
+<div id="refer_labels"></div>
+
+#### Top referrers (of query requests):
 
 
 referer                                        users

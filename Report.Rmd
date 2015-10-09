@@ -1,10 +1,10 @@
 ---
 title: "Who is using Wikidata Query Service and how are they using it?"
 author: "Mikhail Popov"
-date: "October 8, 2015"
+date: "October 9, 2015"
 output:
   html_document:
-    fig_caption: no
+    fig_width: 10
     keep_md: yes
     toc: yes
   pdf_document:
@@ -19,11 +19,14 @@ library(knitr)
 library(scales)
 library(mclust)
 library(gridExtra)
+library(xts)
+library(dygraphs)
 import::from(dplyr, group_by, select, summarize,
              right_join, left_join, ungroup, mutate,
              keep_where = filter)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 load('data/Queries_2015-10-05.RData')
+load('data/Referrers_2015-10-05.RData')
 ```
 
 ```{r utils, include = FALSE}
@@ -44,13 +47,17 @@ The Wikidata Query Service (WDQS) is designed to let users run queries on the da
 
 ## Summary
 
+<div style="font-style:italic;">
+
 We announced the launch of WDQS on Labor Day (Monday, September 7th, 2014) and saw a huge spike in number of users. While the number of users has fallen over time (to around 100 users per day on average), we've seen high usage of the service.
 
-The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). A vast majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems.
+The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
+
+The majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems. A vast of majority of our users are coming to use the service directly, rather than coming to it from elsewhere on the Internet.
 
 As many as 56.48% of the queries are user-written. In reality, the actual number is smaller because the detection procedure did not take into account French translations of example queries that exist on MediaWiki/Wikitech.
 
-One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
+</div>
 
 ## Statistics
 
@@ -236,7 +243,7 @@ For many of the statistical break downs in this report, we will restrict ourselv
 
 ### Tracking daily service usage in top countries
 
-```{r queries_from_countries_over_time, width = 8, height = 16}
+```{r queries_from_countries_over_time}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -258,7 +265,7 @@ wdqs_queries %>%
 
 Varying patterns of WDQS usage by country (top 5 countries, over time). Purple dashes mark the public announcement.
 
-```{r users_from_countries_over_time, width = 8, height = 16}
+```{r users_from_countries_over_time}
 wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   keep_where(countries != 'Unknown') %>%
@@ -329,9 +336,83 @@ dplyr::inner_join(select(most_active_overall, c(user_id, `total queries`)),
 rm(most_active_overall, most_active_daily)
 ```
 
-### Top referers (of query results)
+### Referrers
 
-```{r referers, as.is = TRUE}
+```{r top_referers_overall, as.is = TRUE}
+top_referers_overall <- wdqs_refs %>%
+  # Do some url cleaning up before summarizing:
+  mutate(url = sub("query.wikidata.org/#.*", "query.wikidata.org/#…QUERY…", url)) %>%
+  mutate(url = ifelse(is.na(url), "--", url)) %>%
+  mutate(url = smart_trim(url, 50)) %>%
+  # Summarize:
+  group_by(url) %>%
+  summarize(total = sum(n)) %>%
+  mutate(`total total` = sum(total),
+         `% of total` = 100*total/`total total`) %>%
+  select(-`total total`) %>%
+  dplyr::top_n(20, total) %>%
+  dplyr::arrange(desc(total)) %>%
+  ungroup
+knitr::kable(top_referers_overall, digits = 2)
+```
+
+#### Daily visitors...
+
+**...from ourselves:**
+
+```{r top_refers_daily_self}
+wdqs_refs %>%
+  mutate(url = sub("query.wikidata.org/#.*", "query.wikidata.org/#…QUERY…", url)) %>%
+  keep_where(url %in% c('https://query.wikidata.org', 'https://query.wikidata.org/', 'https://query.wikidata.org/#…QUERY…')) %>%
+  mutate(url = smart_trim(url, 50)) %>%
+  # Summarize:
+  group_by(date, url) %>%
+  summarize(total = sum(n)) %>%
+  ungroup %>%
+  ggplot(data = ., aes(x = date, y = total, color = url)) +
+  geom_line() +
+  ggtitle("Referred from query.wikidata.org") +
+  ylab("Total visitors") +
+  wmf::theme_fivethirtynine()
+```
+
+**...from others:**
+
+```{r top_referers_daily, as.is = TRUE}
+daily_refs <- wdqs_refs %>%
+  # Perform the same cleanup procedure as above:
+  mutate(url = sub("query.wikidata.org/#.*", "query.wikidata.org/#…QUERY…", url)) %>%
+  keep_where(!is.na(url)) %>%
+  keep_where(url %notin% c('https://query.wikidata.org', 'https://query.wikidata.org/', 'https://query.wikidata.org/#…QUERY…')) %>%
+  mutate(url = smart_trim(url, 50)) %>%
+  # Summarize:
+  group_by(date, url) %>%
+  summarize(total = sum(n)) %>%
+  ungroup %>%
+  # Throw away the referrers that aren't in the overall top 11:
+  keep_where(url %in% head(top_referers_overall$url, 11)) %>%
+  tidyr::spread(url, total, fill = 0) %>%
+  # Make it xts-compatible:
+  mutate(date = as.POSIXct(date)) %>%
+  { xts(.[, -1], order.by = .$date) }
+# Plot it!
+dygraph(daily_refs, width = "95%",
+          xlab = "Date", ylab = "Visitors") %>%
+  dyOptions(colors = scales::hue_pal()(ncol(daily_refs)),
+            labelsKMB = TRUE, pointSize = 3, strokeWidth = 2) %>%
+  dyLegend(show = "always", showZeroValues = FALSE,
+           labelsDiv = "refer_labels")
+```
+
+_**Note** that this is an interactive graph like the ones we use in Discovery Dashboards. Mouse-over to see the values of the time series in the legend. You can also zoom in on a particular range. (Zoom out by double-clicking.)_
+
+<strong>Legend:</strong>
+
+<div id="refer_labels"></div>
+
+#### Top referrers (of query requests):
+
+```{r top_referers_queries, as.is = TRUE}
 wdqs_queries %>%
   mutate(referer = smart_trim(referer, 40)) %>%
   group_by(referer, user_id) %>%
@@ -349,7 +430,7 @@ The referers were shortened for privacy and space reasons as they contained quer
 
 ### Query lengths
 
-```{r nchar_hist, width = 10, height = 5}
+```{r nchar_hist}
 ggplot(data = keep_where(wdqs_queries, sample == "definitely no"),
        aes(x = length)) +
   geom_histogram(binwidth = 75, alpha = 0.8) +

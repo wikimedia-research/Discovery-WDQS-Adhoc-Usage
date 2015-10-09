@@ -36,7 +36,7 @@ get_wdqs_referers <- function(date = NULL) {
     date <- Sys.Date() - 1
   }
   ## Date subquery
-  subquery <- date_clause(date)
+  subquery <- date_clause(date)?
   ## Build the hive query
   wdqs_queries_query <- paste("USE wmf;
                               SELECT referer, COUNT(*) as n
@@ -57,3 +57,14 @@ get_wdqs_referers <- function(date = NULL) {
 
 lapply(seq(as.Date("2015-08-23"), Sys.Date()-1, "day"), get_wdqs_referers)
 
+# Referrers
+library(longurl) # install.packages("longurl")
+
+wdqs_refs <- readr::read_csv('data/wdqs_referers.csv')
+wdqs_refs %<>% dplyr::filter(date <= "2015-10-04")
+suppressWarnings(expanded_urls <- expand_urls(wdqs_refs$referer))
+wdqs_refs$url <- expanded_urls$expanded_url
+
+expand_urls(head(wdqs_refs$referer, 2))
+
+save(list = 'wdqs_refs', file = 'data/Referrers_2015-10-05.RData')
