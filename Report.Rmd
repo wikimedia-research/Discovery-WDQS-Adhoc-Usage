@@ -1,7 +1,7 @@
 ---
 title: "Who is using Wikidata Query Service and how are they using it?"
 author: "Mikhail Popov"
-date: "October 5, 2015"
+date: "October 8, 2015"
 output:
   html_document:
     fig_caption: no
@@ -38,11 +38,52 @@ smart_trim <- function(x, width) {
 }
 ```
 
-## Introduction
+## Background
 
-The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses SPARQL as the query language. *SPARQL Protocol and RDF Query Language* (SPARQL) allows users to write queries against what can loosely be called "key-value" data or, more specifically, data that follows the RDF specification of the W3C. The entire database is thus a set of "subject-predicate-object" triples.
+The Wikidata Query Service (WDQS) is designed to let users run queries on the data contained in Wikidata. The service uses *SPARQL Protocol and RDF Query Language* (SPARQL) as the query language.
+
+## Summary
+
+We announced the launch of WDQS on Labor Day (Monday, September 7th, 2014) and saw a huge spike in number of users. While the number of users has fallen over time (to around 100 users per day on average), we've seen high usage of the service.
+
+The users of the service are a geographically diverse bunch, representing 73 different countries. Many of the users were from U.S. (17.8%), Germany (13.4%), and France (12.8%). A vast majority of WDQS users prefer Chrome (42.1%) and Firefox (26.2%) as their browsers and Mac OS X (26.9%) and Windows 7 (22.2%) as their operating systems.
+
+As many as 56.48% of the queries are user-written. In reality, the actual number is smaller because the detection procedure did not take into account French translations of example queries that exist on MediaWiki/Wikitech.
+
+One of the more interesting findings is how much of the usage is by very few users in Republic of Korea.
 
 ## Statistics
+
+```{r queries_per_day}
+wdqs_queries %>%
+  group_by(date) %>%
+  summarize(Queries = n()) %>%
+  ggplot(data = ., aes(x = date, y = Queries)) +
+  geom_line(size = 1.1) +
+  geom_vline(xintercept = as.numeric(as.Date("2015-09-07")),
+             linetype = "dashed", color = "purple") +
+  geom_text(x = as.numeric(as.Date("2015-09-01")), y = 1000,
+            label = "Announcement", color = "purple") +
+  wmf::theme_fivethirtynine()
+```
+
+```{r users_per_day}
+wdqs_queries %>%
+  select(date, user_id) %>%
+  unique %>%
+  group_by(date) %>%
+  summarize(Users = n()) %>%
+  ggplot(data = ., aes(x = date, y = Users)) +
+  geom_hline(yintercept = 0) +
+  geom_line(size = 1.1) +
+  geom_vline(xintercept = as.numeric(as.Date("2015-09-07")),
+             linetype = "dashed", color = "purple") +
+  geom_text(x = as.numeric(as.Date("2015-09-01")), y = 400,
+            label = "Announcement", color = "purple") +
+  wmf::theme_fivethirtynine()
+```
+
+The number of users of the service has fallen since the announcement, vascillating around 100 users per day in the recent weeks.
 
 ```{r median_queries_per_user}
 wdqs_queries %>%
@@ -63,7 +104,7 @@ wdqs_queries %>%
   wmf::theme_fivethirtynine()
 ```
 
-The lower and upper bounds represent the first and third quartiles (25% and 75%). Here we can see that the number of queries per user has stabilized a lot after the announcement.
+The lower and upper bounds represent the first and third quartiles (25% and 75%). Here we can see that the number of queries per user has stabilized a lot after the announcement, mostly because prior to the announcement the queries came from few bots testing the service.
 
 ```{r countries, eval = FALSE}
 summarize(group_by(users, countries), n = n())$countries %>%
@@ -78,9 +119,15 @@ users %>%
                           countries, 'Other')) %>%
   group_by(Country) %>%
   summarize(Users = n()) %>%
-  ggplot(data = ., aes(y = Users, x = Country)) +
-  geom_bar(stat = "identity") +
+  mutate(Total = sum(Users),
+         Percent = Users/Total) %>%
+  select(-Total) %>%
+  ggplot(data = ., aes(y = Percent, x = reorder(Country, Users))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  geom_bar(stat = "identity", alpha = 0.4) +
+  geom_text(aes(label = sprintf("%.2f%%", 100*Percent))) +
   coord_flip() +
+  xlab("Country") +
   ggtitle("Top 10 countries by number of WDQS users") +
   wmf::theme_fivethirtynine()
 ```
@@ -93,9 +140,14 @@ users %>%
                           browser, 'Other')) %>%
   group_by(Browser) %>%
   summarize(Users = n()) %>%
-  ggplot(data = ., aes(y = Users, x = Browser)) +
-  geom_bar(stat = "identity") +
-  # coord_flip() +
+  mutate(Total = sum(Users),
+         Percent = Users/Total) %>%
+  select(-Total) %>%
+  ggplot(data = ., aes(y = Percent, x = reorder(Browser, -Users))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  geom_bar(stat = "identity", alpha = 0.4) +
+  geom_text(aes(label = sprintf("%.2f%%", 100*Percent))) +
+  xlab("Browser") +
   ggtitle("Top 5 browsers by number of WDQS users") +
   wmf::theme_fivethirtynine()
 ```
@@ -108,18 +160,81 @@ users %>%
                                      os, 'Other')) %>%
   group_by(`Operating System`) %>%
   summarize(Users = n()) %>%
-  ggplot(data = ., aes(y = Users, x = `Operating System`)) +
-  geom_bar(stat = "identity") +
+  mutate(Total = sum(Users),
+         Percent = Users/Total) %>%
+  select(-Total) %>%
+  ggplot(data = ., aes(y = Percent, x = reorder(`Operating System`, Users))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  geom_bar(stat = "identity", alpha = 0.4) +
+  geom_text(aes(label = sprintf("%.2f%%", 100*Percent))) +
   coord_flip() +
+  xlab("Operating System") +
   ggtitle("Top 5 OSes by number of WDQS users") +
   wmf::theme_fivethirtynine()
 ```
 
 Windows 7 and Mac OS X users are by far the most popular operating systems among WDQS users.
 
-![](figures/queries.png)
+### User-written queries vs provided example queries
 
-Total queries over time and how many were the sample queries we provided for demonstration.
+Perhaps the biggest challenge of working with this dataset was the fact that a lot of the queries that our users ran were just sample queries we provide on query.wikidata.org or examples found on MediaWiki/Wikitech. Therefore, we put together a procedure for detecting whether a query is an example or not.
+
+We were able to find a few queries and manually mark them as examples. Other queries that were perfect matches to these manually verified queries were marked as "definitely an example".
+
+#### Methods
+
+First, we compiled a list of example queries, stripped out extraneous spaces ("condensed"), and cropped them using the maximum length of condensed user-submitted queries.
+
+The procedure can be described as follows. For each user-submitted query $Q$:
+
+1. Compute the Levenshtein distance $d_m$ between it and each of the $M$ example queries on file ($E_m$ for $m = 1, \ldots, M$), giving the minimal possibly weighted number of insertions, deletions and substitutions needed to transform the query into the example.
+2. Calculate the maximum edit distance for each of the query-example query pairs. That is, if $|q|$ is the length of the query $q$, then the maximum edit distance is $\max\{|Q|, |E_m|\}$ for each $m = 1, \ldots, M$.
+3. Normalize the computed Levenshtein distance by dividing it by the maximum edit distance. Let $d_m^N \in [0, 1]$ be this normalized distance.
+4. Find the smallest normalized distance $\hat{d}$: $$ \hat{d} = \min_{m = 1, \ldots, M} d_m^N$$
+5. Calculate the "pseudo probability" $\hat{p} = 1 - \hat{d}$.
+6. Calculate the "pseudo odds" $\hat{\theta} = \hat{p}/(1-\hat{p})$.
+7. Then:
+    a. If $\hat{\theta} \geq 4$, mark as "probably example".
+    b. If $2 \geq \hat{\theta} < 4$, mark as "maybe an example, maybe not".
+    c. And "definitely not an example" (or "definitely an example" as the case may be) otherwise.
+
+That is, if a query is 4 or more times more likely to be an example than not, it makes sense to say it's probably an example.
+
+#### Results
+
+```{r query_by_chance_of_sample}
+wdqs_queries %>%
+  group_by(date, sample) %>%
+  summarize(n = n()) %>%
+  ggplot(data = .) +
+  geom_line(aes(x = date, y = n, color = sample)) +
+  ylab("Number of queries") +
+  scale_color_discrete(name = "Example query") +
+  wmf::theme_fivethirtynine() +
+  geom_line(aes(x = date, y = n),
+            data = wdqs_queries %>%
+              group_by(date) %>%
+              summarize(n = n()),
+            linetype = "dashed")
+```
+
+Total queries (black dashes) over time and how many were the sample queries we provided for demonstration.
+
+
+```{r example_query_counts}
+wdqs_queries %>%
+  group_by(sample) %>%
+  summarize(`Total queries` = n()) %>%
+  dplyr::rename(`Is the query an example?` = sample) %>%
+  mutate(Total = sum(`Total queries`),
+         `% of total` = round(100*`Total queries`/Total, 2)) %>%
+  select(-Total) %>%
+  knitr::kable()
+```
+
+For many of the statistical break downs in this report, we will restrict ourselves to queries that are definitely not examples we provided.
+
+### Tracking daily service usage in top countries
 
 ```{r queries_from_countries_over_time, width = 8, height = 16}
 wdqs_queries %>%
@@ -167,8 +282,6 @@ Varying patterns of WDQS unique users by country (top 5 countries, over time). P
 
 ### Who are our most active users?
 
-**Note**: "user_id" is an anonymous identification marker created post-hoc from IP address and user agent. It is used for linking queries.
-
 #### Top 20 users by total queries
 
 ```{r most_active_overall, as.is = TRUE}
@@ -180,7 +293,7 @@ most_active_overall <- wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   select(-c(browser, device)) %>%
   dplyr::rename(country = countries)
-knitr::kable(most_active_overall)
+knitr::kable(select(most_active_overall, -user_id))
 ```
 
 #### Top 20 users by daily service usage
@@ -196,7 +309,7 @@ most_active_daily <- wdqs_queries %>%
   left_join(users, by = "user_id") %>%
   select(-c(browser, device)) %>%
   dplyr::rename(country = countries)
-knitr::kable(most_active_daily)
+knitr::kable(select(most_active_daily, -user_id))
 ```
 
 #### Users who made it to both lists
@@ -205,9 +318,9 @@ knitr::kable(most_active_daily)
 dplyr::inner_join(select(most_active_overall, c(user_id, `total queries`)),
                   select(most_active_daily, c(user_id, `median queries per day`)),
                   by = "user_id") %>%
-  left_join(users) %>%
-  dplyr::arrange(desc(`median queries per day`)) %>%
-  select(-c(browser, device)) %>%
+  left_join(users, by = "user_id") %>%
+  dplyr::arrange(desc(`total queries`)) %>%
+  select(-c(user_id, browser, device)) %>%
   dplyr::rename(country = countries) %>%
   knitr::kable()
 ```
@@ -216,45 +329,51 @@ dplyr::inner_join(select(most_active_overall, c(user_id, `total queries`)),
 rm(most_active_overall, most_active_daily)
 ```
 
-### Referers
+### Top referers (of query results)
 
 ```{r referers, as.is = TRUE}
 wdqs_queries %>%
-  mutate(referer = smart_trim(referer, 35)) %>%
+  mutate(referer = smart_trim(referer, 40)) %>%
   group_by(referer, user_id) %>%
   summarize(`queries by user` = n()) %>%
   group_by(referer) %>%
   summarize(users = n()) %>%
-  dplyr::top_n(10, users) %>%
+  dplyr::top_n(7, users) %>%
   dplyr::arrange(desc(users)) %>%
   knitr::kable()
 ```
+
+The referers were shortened for privacy and space reasons as they contained queries.
 
 ## Queries
 
 ### Query lengths
 
 ```{r nchar_hist, width = 10, height = 5}
-wdqs_queries %<>% mutate(length = nchar(query))
-ggplot(data = keep_where(wdqs_queries, sample == "no"),
+ggplot(data = keep_where(wdqs_queries, sample == "definitely no"),
        aes(x = length)) +
-  geom_histogram(binwidth = 100, alpha = 0.8) +
+  geom_histogram(binwidth = 75, alpha = 0.8) +
+  geom_histogram(aes(x = length_condensed), binwidth = 75,
+                 alpha = 0.8, fill = "cornflowerblue") +
   xlab("Number of characters in query") +
-  ggtitle("Distribution of query lengths:") +
+  ggtitle("Distribution of (definitely not example) query lengths") +
   wmf::theme_fivethirtynine()
 ```
 
+Gray represents the distribution of the raw query lengths, while the light blue represents the distribution of query lengths after stripping out tabs and excessive spaces ("condensed queries").
+
 We can see multiple modes in the distribution of query lengths, which suggests that the distribution is a mixture of several distributions. The next step is to use a clustering algorithm to separate the distributions out into distinct groups. For this task, we chose a model-based clustering algorithm.
 
-We performed model-based clustering on the log10-transformed character counts of queries that were not sample queries we provided. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
+We performed model-based clustering on the log10-transformed character counts of condensed queries that were "definitely not" sample queries we provided. (Model-based clustering relies on Gaussian mixture models, so the log10 transformation was employed to correct for the right-skewness and make the data Normal.)
 
 ```{r nchar_clust, cache = TRUE}
 # Use model-based clustering on the log10 transformed character counts:
 set.seed(0)
 wdqs_queries_nonexample <- wdqs_queries %>%
-  keep_where(sample == "no") %>%
-  mutate(log10length = log10(length))
-clust <- Mclust(wdqs_queries_nonexample$log10length, 4)
+  keep_where(sample == "definitely no") %>%
+  mutate(log10length = log10(length),
+         log10length_condensed = log10(length_condensed))
+clust <- Mclust(wdqs_queries_nonexample$log10length_condensed, modelNames = "V")
 wdqs_queries_nonexample$cluster <- factor(LETTERS[clust$classification])
 
 # Merge into overall dataset:
@@ -263,9 +382,9 @@ wdqs_queries <- wdqs_queries_nonexample %>%
   left_join(wdqs_queries, ., by = "query_id")
 
 # For calculating f(x):
-x = seq(min(wdqs_queries_nonexample$log10length),
-        max(wdqs_queries_nonexample$log10length),
-        length.out = 1000)
+x <- seq(min(wdqs_queries_nonexample$log10length_condensed),
+         max(wdqs_queries_nonexample$log10length_condensed),
+         length.out = 1e3)
 
 # Calculate the f(x) using the mean and sd of that cluster:
 densities <- sapply(1:length(clust$parameters$pro),
@@ -292,7 +411,7 @@ for (i in 1:length(clust$parameters$pro) ) {
 
 # This will be used to add cluster means (on the back-transformed scale) to the plot:
 annotations <- data.frame(x = unname(round(10^clust$parameters$mean, 1)),
-                          y = rep(0.3, length(clust$parameters$pro)),
+                          y = rep(0.15, length(clust$parameters$pro)),
                           cluster = factor(levels(wdqs_queries_nonexample$cluster)))
 
 # Plot the log-normal densities:
@@ -306,6 +425,7 @@ ggplot(data = densities) +
              aes(xintercept = x, color = cluster)) +
   geom_text(data = annotations, aes(label = x, x = x, y = y)) +
   wmf::theme_fivethirtynine() +
+  # scale_x_log10() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
@@ -315,7 +435,7 @@ ggplot(data = densities) +
 rm(x, densities, annotations, wdqs_queries_nonexample)
 ```
 
-The most optimal model was a 4-component univariate mixture with unequal variances. The centers for the 4 clusters (on the raw scale) are: 89, 388, 621, and 1177 characters.
+The most optimal model was a 2-component univariate mixture with unequal variances. The centers for the 2 clusters (on the raw scale) are: 97 and 576 characters.
 
 ### Example queries
 
@@ -323,9 +443,9 @@ The most optimal model was a 4-component univariate mixture with unequal varianc
 
 ```{r example_query_shortest}
 wdqs_queries %>%
-  keep_where(sample == "no") %>%
+  keep_where(sample == "definitely no") %>%
   dplyr::arrange(length) %>%
-  select(query) %>%
+  select(query_condensed) %>%
   unique() %>%
   head(25) %>%
   unlist %>%
@@ -335,26 +455,96 @@ wdqs_queries %>%
   knitr::kable(col.names = paste("column", 1:5))
 ```
 
-#### Longest query
+#### Some of the longer queries
 
-```{r longest_query, eval = FALSE}
+```{r longest_query, comment = NA}
 wdqs_queries %>%
-  keep_where(sample == "no") %>%
-  select(query, length) %>%
+  keep_where(pseudo_odds < 0.15) %>%
+  select(query_condensed, length_condensed) %>%
   unique() %>%
-  dplyr::top_n(1, length) %>%
+  dplyr::top_n(3, length_condensed) %>%
+  select(query_condensed) %>%
+  unlist %>%
+  paste(collapse = "\n\n======================\n\n") %>%
+  cat
+```
+
+#### Some of the longer queries (part 2)
+
+```{r longest_query_part_deux, comment = NA}
+wdqs_queries %>%
+  keep_where(sample == "definitely no") %>%
+  keep_where(!grepl("Query to return latitudes and longitudes", query)) %>%
+  keep_where(!grepl("inttech.flab.fujitsu.co.jp", query)) %>%
+  keep_where(!grepl("DESCRIBE <https", query)) %>%
+  keep_where(!grepl("# ", query, fixed = TRUE)) %>%
+  select(query, length_condensed) %>%
+  unique() %>%
+  dplyr::top_n(3, length_condensed) %>%
   select(query) %>%
   unlist %>%
+  paste(collapse = "\n======================\n\n") %>%
   cat
 ```
 
 #### Examples of Category "A" queries:
 
+```{r group_a_queries, comment = NA}
+set.seed(0)
+wdqs_queries %>%
+  keep_where(cluster == "A") %>%
+  keep_where(!grepl("Query to return latitudes and longitudes", query)) %>%
+  keep_where(!grepl("inttech.flab.fujitsu.co.jp", query)) %>%
+  keep_where(!grepl("DESCRIBE <http", query)) %>%
+  keep_where(!grepl("# ", query, fixed = TRUE)) %>%
+  keep_where(length_condensed > 97) %>%
+  select(query, length_condensed) %>%
+  unique() %>%
+  dplyr::sample_n(3) %>%
+  select(query) %>%
+  unlist %>%
+  paste(collapse = "\n======================\n\n") %>%
+  cat
+```
+
 #### Examples of Category "B" queries:
 
-#### Examples of Category "C" queries:
+```{r group_b_queries, comment = NA}
+set.seed(0)
+wdqs_queries %>%
+  keep_where(cluster == "B") %>%
+  keep_where(!grepl("Query to return latitudes and longitudes", query)) %>%
+  keep_where(!grepl("inttech.flab.fujitsu.co.jp", query)) %>%
+  keep_where(!grepl("DESCRIBE <http", query)) %>%
+  keep_where(!grepl("# ", query, fixed = TRUE)) %>%
+  keep_where(!grepl("FILTER (lang", query, fixed = TRUE)) %>%
+  keep_where(length_condensed > 576) %>%
+  select(query, length_condensed) %>%
+  unique() %>%
+  dplyr::sample_n(2) %>%
+  select(query) %>%
+  unlist %>%
+  paste(collapse = "\n======================\n\n") %>%
+  cat
+```
 
-#### Examples of Category "D" queries:
+## Discussion
+
+### Partial Queries
+
+One of the bigger challenges encountered in this analysis was the fact that queries were cropped. When the user executes a query, their query is passed via GET, and is saved in Varnish as an encoded `uri_path`. Varnish, however, has a character limit, so the encoded queries get cropped. Therefore, when we decode the queries, the end result is also cropped. So a lot of the queries in this dataset were partial queries.
+
+### Example Matching
+
+Another issue (and this may be actually be the biggest issue) is that many of the queries are sample queries found on various WDQS-related MediaWiki/Wikitech articles. We (read: I) had to compile together as many of the example queries as we could and then perform approximate string matching to separate the queries that are user-written from the ones that are probably examples.
+
+The process we employed was ad-hoc, not very robust, and highly dubious, but not entirely unreasonable. We recommend collaborating with our language expert (read: Trey) to develop a more robust methodology for detecting when the query submitted matches an example query we have on file.
+
+Furthermore, for the sake of time, we did not include example queries from other languages in our initial compilation of examples. Some of the queries that were deemed "definitely not an example" actually WERE most definitely examples written in French.
+
+## Acknowledgements
+
+We would like to thank Trey Jones for his advice in dealing with approximate string matching.
 
 ## References
 
